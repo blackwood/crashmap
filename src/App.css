@@ -32,7 +32,17 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
+}
+
+.app {
+  height: 100vh;
+  width: 100%;
+}
+
+.leaflet-container {
+  height: 100%;
 }
