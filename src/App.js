@@ -2,6 +2,13 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import { isValid, format, parseISO } from "date-fns";
 
+// TODO
+// Filter by Driver contribution, injury, ped/cycle
+// Add new data that includes whether the city has discussed or implemented
+// any traffic calming measures for a particular area.
+// complementary timeframe on either side of intervention for comparison.
+// Split into two maps?
+
 // TileLayer provided by:
 // https://leaflet-extras.github.io/leaflet-providers/preview/
 // Esri.WorldGrayCanvas
@@ -28,7 +35,7 @@ const humanifyDate = (date) => {
 
 function App() {
   const [data, setData] = useState([]);
-  const [dateStart, setDateStart] = useState("2023-05-17");
+  const [dateStart, setDateStart] = useState("2019-05-17");
   const [dateEnd, setDateEnd] = useState(getTodayDate());
   console.log({ dateStart, dateEnd });
 
