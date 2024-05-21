@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import { isValid, format, parseISO } from "date-fns";
+import hash from "object-hash";
+import { produce } from "immer";
 
 // TODO
 // Filter by Driver contribution, injury, ped/cycle
@@ -18,6 +19,10 @@ import "leaflet/dist/leaflet.css";
 
 import defaultIconPng from "leaflet/dist/images/marker-icon.png";
 import MarkerClusterGroup from "react-leaflet-cluster";
+import { cleanInjuryType, dateToSimpleISO, getTodayDate } from "./util";
+import CrashDetail from "./components/CrashDetail/CrashDetail";
+import DateFilters from "./components/DateFilters/DateFilters";
+import SelectFilters from "./components/SelectFilters/SelectFilters";
 
 const defaultIcon = new Icon({
   iconUrl: defaultIconPng,
@@ -27,35 +32,85 @@ const defaultIcon = new Icon({
   shadowSize: [41, 41],
 });
 
-const getTodayDate = () => new Date().toISOString().substring(0, 10);
-
-const humanifyDate = (date) => {
-  return format(parseISO(date), "PPP");
-};
-
 function App() {
   const [data, setData] = useState([]);
-  const [dateStart, setDateStart] = useState("2019-05-17");
-  const [dateEnd, setDateEnd] = useState(getTodayDate());
-  console.log({ dateStart, dateEnd });
+  const [dates, setDates] = useState([new Date("2015-01-01"), new Date()]);
+  const [filters, setFilters] = useState({ injuries: [], entities: [] });
+
+  const setFiltersIn = (filter, values) => {
+    const nextFilters = produce(filters, (draft) => {
+      draft[filter] = values;
+    });
+    setFilters(nextFilters);
+  };
+
+  const [date_start, date_end] = dates;
 
   useEffect(() => {
     const fetchCrashes = async (isoDateStart, isoDateEnd) => {
-      const query = `(may_involve_cyclist = "1" OR may_involve_pedestrian = "1") AND date_time > "${isoDateStart}" AND date_time < "${isoDateEnd}"`;
+      const query = `(may_involve_cyclist = "1" OR may_involve_pedestrian = "1") AND date_time > "${dateToSimpleISO(
+        date_start
+      )}" AND date_time < "${dateToSimpleISO(date_end)}"`;
       const response = await fetch(
         "https://data.cambridgema.gov/resource/gb5w-yva3.json?" +
           new URLSearchParams({
             $where: query,
+            $limit: 500000,
           })
       );
       const crashes = await response.json();
-      setData(crashes);
-      console.log(crashes);
+
+      const cleanedCrashes = crashes.map((crash) => {
+        const { date_time, location } = crash;
+
+        let location_detail = {
+          street_name: crash.street_name.trim(),
+          street_direction: crash.street_direction.trim(),
+          landmark: crash.landmark.trim(),
+          intersection_name_1: crash.intersection_name_1.trim(),
+          near_street: crash.near_street.trim(),
+        };
+
+        // NOTE: These rows don't come back from the API with IDs.
+        // We can create an effective pseudo ID by hashing object.
+        return {
+          id: hash(crash),
+          ...(location && { location_hash: hash({ ...location }) }),
+          ...(location || {
+            location_detail,
+            location_hash: hash({ ...location_detail }),
+          }),
+          injury_type: cleanInjuryType(crash),
+          collision_with: crash.first_harmful_event.trim(),
+          ...crash,
+        };
+      });
+
+      const nonLocCrashes = cleanedCrashes
+        .filter((crash) => !crash.location)
+        .map((crash) => ({
+          location_hash: crash.location_hash,
+          ...crash.location_detail,
+        }));
+
+      // console.log(
+      // .map((crash) => ({
+      //   ...crash,
+      //   attempt:
+      //     `${crash.street_name} ${crash.street_direction} ${crash.landmark} ${crash.intersection_name_1} NEAR ${crash.near_street}`.replace(
+      //       / +(?= )/g,
+      //       ""
+      //     ),
+      // })
+      // );
+
+      setData(cleanedCrashes);
+
       return crashes;
     };
 
-    fetchCrashes(dateStart, dateEnd);
-  }, []);
+    fetchCrashes(date_start, date_end);
+  }, [date_start, date_end]);
 
   const getLatLon = (crash) => {
     const {
@@ -64,9 +119,38 @@ function App() {
     return [latitude, longitude];
   };
 
-  console.log(typeof data, data.length);
+  const filterables = {
+    HAS_LOCATION: (crash) => !!crash.location,
+    COLLISION_WITH: (crash) => {
+      return (
+        filters.entities.length === 0 ||
+        filters.entities.some((entity) => entity === crash.collision_with)
+      );
+    },
+    INJURY_TYPE: (crash) => {
+      console.log({ len: filters.injuries.length, injury: crash.injury_type });
+      return (
+        filters.injuries.length === 0 ||
+        filters.injuries.some((injury) => injury === crash.injury_type)
+      );
+    },
+  };
+
+  const filteredData = data.filter(
+    (crash) =>
+      filterables.HAS_LOCATION(crash) &&
+      filterables.COLLISION_WITH(crash) &&
+      filterables.INJURY_TYPE(crash)
+  );
+
+  console.log({
+    injury_types: new Set(data.map((crash) => crash.injury_type)),
+  });
+
   return (
     <div className="app">
+      <DateFilters dates={dates} setDates={setDates} />
+      <SelectFilters setFiltersIn={setFiltersIn} />
       <MapContainer center={[42.3736, -71.1097]} zoom={14}>
         <TileLayer
           url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
@@ -76,34 +160,17 @@ function App() {
         <MarkerClusterGroup chunkedLoading>
           {/* TODO: Approximate location and cache for crashes
             with no specific location (use NEAR street) */}
-          {data
-            .filter((crash) => !!crash.location)
-            .map((crash) => (
-              <Marker icon={defaultIcon} position={getLatLon(crash)}>
-                <Popup>
-                  <p>
-                    <b>Date</b>: {humanifyDate(crash.date_time)}
-                  </p>
-                  <p>
-                    <b>Object:</b> {crash.object_1}
-                  </p>
-                  <p>
-                    <b>Description</b>: {crash.first_harmful_event}
-                  </p>
-                  <p>
-                    <b>Driver Contribution</b>: {crash.v1_driver_contribution}
-                  </p>
-                  <p>
-                    <b>Injury</b>:{" "}
-                    {crash.p1_non_motorist_desc
-                      ? crash.p1_injury
-                      : crash.p2_non_motorist_desc
-                      ? crash.p2_injury
-                      : "UNKNOWN"}
-                  </p>
-                </Popup>
-              </Marker>
-            ))}
+          {filteredData.map((crash) => (
+            <Marker
+              key={crash.id} // Having the ID lets us reconcile between updates and improve perf
+              icon={defaultIcon}
+              position={getLatLon(crash)}
+            >
+              <Popup>
+                <CrashDetail crash={crash} />
+              </Popup>
+            </Marker>
+          ))}
         </MarkerClusterGroup>
         {/* TODO: Use a generator to animate by date */}
       </MapContainer>
