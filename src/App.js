@@ -104,23 +104,13 @@ function App() {
         };
       });
 
-      const nonLocCrashes = cleanedCrashes
-        .filter((crash) => !crash.location)
-        .map((crash) => ({
-          location_hash: crash.location_hash,
-          ...crash.location_detail,
-        }));
-
-      // console.log(
-      // .map((crash) => ({
-      //   ...crash,
-      //   attempt:
-      //     `${crash.street_name} ${crash.street_direction} ${crash.landmark} ${crash.intersection_name_1} NEAR ${crash.near_street}`.replace(
-      //       / +(?= )/g,
-      //       ""
-      //     ),
-      // })
-      // );
+      // TODO Develop strategy for caching nonLocCrash approx_location data
+      // const nonLocCrashes = cleanedCrashes
+      //   .filter((crash) => !crash.location)
+      //   .map((crash) => ({
+      //     location_hash: crash.location_hash,
+      //     ...crash.location_detail,
+      //   }));
 
       setData(cleanedCrashes);
 
@@ -206,7 +196,6 @@ function App() {
                   <Loader />
                 </div>
               )}
-              {/* <div style={{ gridArea: "1 / 1" }}>{<Loader />}</div> */}
             </Content>
             <Sider
               className="sider"
