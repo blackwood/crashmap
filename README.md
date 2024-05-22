@@ -1,6 +1,6 @@
 # Cambridge MA Crash Map
 
-(Link)[https://blackwood.github.io/crashmap]
+[Live Map Link](https://blackwood.github.io/crashmap)
 
 Interactive map of pedestrian and cyclist involved crashes responded to by Cambridge Police.
 
