@@ -1,6 +1,6 @@
 import React from "react";
 import "./SelectFilters.css";
-import { Select, Space } from "antd";
+import { Form, Select, Space } from "antd";
 import { expandToOptions } from "../../util";
 
 const SelectFilters = ({ setFiltersIn }) => {
@@ -33,37 +33,43 @@ const SelectFilters = ({ setFiltersIn }) => {
   ]);
 
   return (
-    <Space
-      style={{
-        width: "100%",
-      }}
-      direction="vertical"
-    >
-      <Select
-        mode="multiple"
-        allowClear
+    <>
+      <Space
         style={{
           width: "100%",
         }}
-        placeholder="Please select"
-        defaultValue={[]}
-        onChange={(e) => {
-          setFiltersIn("entities", e);
-        }}
-        options={COLLISION_WITH_OPTS}
-      />
-      <Select
-        mode="multiple"
-        allowClear
-        style={{
-          width: "100%",
-        }}
-        placeholder="Please select"
-        defaultValue={[]}
-        onChange={(e) => setFiltersIn("injuries", e)}
-        options={INJURY_TYPE_OPTS}
-      />
-    </Space>
+        direction="vertical"
+      >
+        <Form.Item label="Collision With (Initial)">
+          <Select
+            mode="multiple"
+            allowClear
+            style={{
+              width: "100%",
+            }}
+            placeholder="Please select"
+            defaultValue={[]}
+            onChange={(e) => {
+              setFiltersIn("entities", e);
+            }}
+            options={COLLISION_WITH_OPTS}
+          />
+        </Form.Item>
+        <Form.Item label="Injury Type">
+          <Select
+            mode="multiple"
+            allowClear
+            style={{
+              width: "100%",
+            }}
+            placeholder="Please select"
+            defaultValue={[]}
+            onChange={(e) => setFiltersIn("injuries", e)}
+            options={INJURY_TYPE_OPTS}
+          />
+        </Form.Item>
+      </Space>
+    </>
   );
 };
 

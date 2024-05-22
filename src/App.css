@@ -43,6 +43,39 @@
   width: 100%;
 }
 
+.ant-flex,
+.ant-layout {
+  height: 100%;
+}
+
 .leaflet-container {
   height: 100%;
+}
+
+.header {
+  text-align: center;
+  color: #fff;
+  height: 64px;
+  padding-inline: 48px;
+  line-height: 64px;
+}
+
+.content {
+  height: 100%;
+  text-align: center;
+  min-height: 120;
+  line-height: 120px;
+  color: #fff;
+  height: 100%;
+}
+
+.sider {
+  text-align: center;
+  line-height: 120px;
+  color: #fff;
+}
+
+.footer {
+  text-align: center;
+  color: #fff;
 }
