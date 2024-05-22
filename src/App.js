@@ -12,6 +12,7 @@ import { produce } from "immer";
 import hash from "object-hash";
 import { useEffect, useState } from "react";
 import "./App.css";
+import { parseISO } from "date-fns";
 
 import { Icon } from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -45,10 +46,10 @@ const defaultIcon = new Icon({
 function App() {
   const [data, setData] = useState([]);
   const [dates, setDates] = useState([
-    new Date("2023-01-01 "),
-    new Date("2024-01-01 "),
+    parseISO("2023-01-01 "),
+    parseISO("2024-01-01 "),
   ]);
-  console.log(dateToSimpleISO(dates[0]));
+
   const [filters, setFilters] = useState({ injuries: [], entities: [] });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -150,7 +151,6 @@ function App() {
       filterables.INJURY_TYPE(crash)
   );
 
-  console.log({ isLoading });
   return (
     <div className="app">
       <Flex gap="middle" wrap>

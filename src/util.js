@@ -1,7 +1,9 @@
 import { format, parseISO } from "date-fns";
 
-export const dateToSimpleISO = (date) => date.toISOString().substring(0, 10);
-
+export const dateToSimpleISO = (date) => {
+  console.log(date, typeof date);
+  return new Date(date).toISOString().substring(0, 10);
+};
 export const humanifyDate = (date) => {
   return format(parseISO(date), "PPP");
 };
