@@ -146,7 +146,9 @@ function App() {
 
   const filteredData = data.filter(
     (crash) =>
-      filterables.HAS_LOCATION(crash) &&
+      crash.latitude &&
+      crash.longitude && // Rely on latlon for now
+      // filterables.HAS_LOCATION(crash) &&
       filterables.COLLISION_WITH(crash) &&
       filterables.INJURY_TYPE(crash)
   );
@@ -177,17 +179,18 @@ function App() {
                 <MarkerClusterGroup chunkedLoading>
                   {/* TODO: Approximate location and cache for crashes
             with no specific location (use NEAR street) */}
-                  {filteredData.map((crash) => (
-                    <Marker
-                      key={crash.id} // Having the ID lets us reconcile between updates and improve perf
-                      icon={defaultIcon}
-                      position={getLatLon(crash)}
-                    >
-                      <Popup>
-                        <CrashDetail crash={crash} />
-                      </Popup>
-                    </Marker>
-                  ))}
+                  {!isLoading &&
+                    filteredData.map((crash) => (
+                      <Marker
+                        key={crash.id} // Having the ID lets us reconcile between updates and improve perf
+                        icon={defaultIcon}
+                        position={getLatLon(crash)}
+                      >
+                        <Popup>
+                          <CrashDetail crash={crash} />
+                        </Popup>
+                      </Marker>
+                    ))}
                 </MarkerClusterGroup>
                 {/* TODO: Use a generator to animate by date */}
               </MapContainer>

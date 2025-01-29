@@ -6,7 +6,6 @@ import { Form } from "antd";
 const { RangePicker } = DFDatePicker;
 
 const DateFilters = ({ dates, setDates }) => {
-  console.log(dates);
   return (
     <Form.Item className="DateFilters" label="Date Range">
       <RangePicker
