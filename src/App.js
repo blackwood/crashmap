@@ -46,8 +46,8 @@ const defaultIcon = new Icon({
 function App() {
   const [data, setData] = useState([]);
   const [dates, setDates] = useState([
-    parseISO("2023-01-01 "),
     parseISO("2024-01-01 "),
+    parseISO("2025-01-01 "),
   ]);
 
   const [filters, setFilters] = useState({ injuries: [], entities: [] });
